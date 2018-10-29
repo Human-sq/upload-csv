@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <title>csv</title>
+    <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+    <style>
+         table{
+            width:500px;
+            font-weight: bold;
+            border: 1px solid #000;
+            border-collapse:collapse;
+            font-size:20px;
+            text-align:center;
+            margin: 0 auto;
+        }
+        td{
+            border: 1px solid #000000;
+        }
+    </style>
+</head>
+<body>
+    <input type="file" class="form-control" / id="file-value">
+    <button class="btn btn-success" id="upload-btn" onclick="upload()">上传</button>
+    <table id="table">
+    </table>
+    <script>
+        function addTable(data){
+            var arrname=['qq','结果','提示信息'];
+            //动态创建table
+            var table=document.getElementById('table');
+            //创建tr,td项
+            var tr=document.createElement('tr');
+            //创建文档片段
+    //           var pool=document.createDocumentFragment();
+                for(var i=0;i<arrname.length;i++){
+                    var td=document.createElement('td');
+                    td.innerHTML=arrname[i];
+    //                pool.appendChild(td);
+                    tr.appendChild(td);
+                }
+            table.appendChild(tr);
+
+            for(var i=0;i<data.length;i++){
+                var newRow=table.insertRow();
+                    var newcellname=newRow.insertCell(0);
+                    newcellname.innerHTML=data[i].qq;
+                var newcellname=newRow.insertCell(1);
+                    newcellname.innerHTML=data[i].status;
+                var newcellname=newRow.insertCell(2);
+                    newcellname.innerHTML=data[i].message
+
+            }
+        }
+        function list(id) {
+            return new Promise((r,f)=>{
+                fetch('url' + id)
+                .then((res)=>{
+                    return res.text()
+                })
+                .then((res)=>{
+                    res = JSON.parse(res);
+                    res.qq = id;
+                    r(res);
+                })
+            })
+        }
+        function upload(){
+            var files = document.getElementById("file-value").files;
+            var reader = new FileReader();
+            reader.readAsText(files[0],"gb2312");
+            let a = {data: null}
+            reader.onload = function() {
+                a.data = this.result.split('\r\n');
+                let arr = [];
+                a.data.slice(1,-1).map(function(row){
+                    row.split(',').map(qq=>{
+                        if(qq){
+                            arr.push(qq);
+                        }
+                    })
+                })
+                console.log(arr);
+                const promise = arr.map(function(qq){
+                    return list(qq);
+                })
+                Promise.all(promise).then(r=>{
+                    addTable(r);
+                    console.log(r);
+                }).catch(err=>{
+                    console.log(err);
+                })
+            }
+        }
+        
+    </script>
+</body>
+</html>
